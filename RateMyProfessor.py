@@ -2,42 +2,54 @@ import requests
 import json
 from bs4 import BeautifulSoup
 
-inputPrompt = input('Please input the first and last names of the professor you would like to search, seperate each name with a comma: ')
-inputList = inputPrompt.split(', ') # Input List now in format [First Last, First Last, ...]
 
-sid = 'U2Nob29sLTYw' #This is auburn's school id, the ratemyprofessor api converts this value to a number 1-6049 for each college, Auburn's is 60, so U2Nob29sLTYw = 60.
+sid = 'U2Nob29sLTYw' #This is Auburn University's school id, to be used in the search.
 professorNames = []
 professorInfo = []
-for name in inputList:
-    professorNames.append(name.split(' ')) # Professors List now in format [[First, Last], [First, Last], ...]
 
+#requestNames ask the user for the names of the professors to search.
+#   That input is put in the inputList, then it is further seperated to first and last names in the professorNames list.
+def requestNames():
+    inputPrompt = input('Please input the first and last names of the professor you would like to search, seperate each name with a comma: ')
+    inputList = inputPrompt.split(', ')
+    for name in inputList:
+        professorNames.append(name.split(' '))
+
+#lookupProfessor takes the first and last name of each inputted name from the user and searches for the results of
+#   that name on the rate my professor webiste. The information needed is all in a script from the source code of
+#   the professor page. The JSON aspect of that script is isolated and then the function calls getProfessorInfo to
+#   further isolate the correct information.
 def lookupProfessor(firstName, lastName):
     pageUrl = f'https://www.ratemyprofessors.com/search/teachers?query={firstName}%20{lastName}&sid={sid}'
     r = requests.get(pageUrl)
     soup = BeautifulSoup(r.content, 'html.parser')
-    script = soup.find_all('script')[10].text.strip()[25:-1061] # This part finds the script containing the information, and isolates the json string
+    script = soup.find_all('script')[10].text.strip()[25:-1061]
     getProfessorInfo(script, firstName, lastName)
 
+#getProfessorInfo creates and navigates a data dictionary with the script found with lookupProfessor.
+#   The script is converted to a JSON string then navigated in the usual dictionary methods. 
+#   Once all the information needed is found, it creates a Professor object and adds it to the PrefessorInfo list.
 def getProfessorInfo(JSON_String, first, last):
     data = json.loads(JSON_String)
     bs, open, close = '\"', '{\"', '\"}' # formatting variables to use f string in the refString
     resultString = f'client:root:newSearch:teachers(after:{bs}{bs},first:8,query:{open}fallback{bs}:true,{bs}schoolID{bs}:{bs}U2Nob29sLTYw{bs},{bs}text{bs}:{bs}{first} {last}{close})'
-    resultCount = int(data[resultString]['resultCount']) #Results = number of edges = number of professors
-    if resultCount == 0 :
+    resultCount = int(data[resultString]['resultCount'])
+    if resultCount == 0:
         profDNE(first, last, resultCount)
         return
-    resultEdges = data[resultString]['edges']['__refs'] #List of edges, where each edge represents a different professor that matched the search
-    for edge in resultEdges : #each edge contains a node that references the professor's ID, which is saved as the profRef
-        profRef = data[edge]['node']['__ref']
-        tid = data[profRef]['legacyId'] #In the profRef the tid is found to complete the url to the professor's webpage
-        schoolID = data[profRef]['school']['__ref'] #The schoolID that they are at is found, this will also be used to make sure it shows professors for the right school
-        schoolName = data[schoolID]['name']
+    resultEdges = data[resultString]['edges']['__refs']
 
-        if schoolID != sid :
+    for edge in resultEdges: #Each edge is essentially a different professor found in the query
+        profRef = data[edge]['node']['__ref']
+        tid = data[profRef]['legacyId']
+        profSchoolID = data[profRef]['school']['__ref']
+        schoolName = data[profSchoolID]['name']
+
+        if profSchoolID != sid: #When the professor being looked at is not the right school
             profDNE(first, last, resultCount)
             return
 
-        else :
+        else:
             professor = {
                 'First Name' : data[profRef]['firstName'],
                 'Last Name' : data[profRef]['lastName'],
@@ -51,15 +63,16 @@ def getProfessorInfo(JSON_String, first, last):
             }
             professorInfo.append(professor)
 
-def profDNE(first, last, resultCount) : #This function catches instances where there are no results, or results not matching the correct school
-    if resultCount == 0 :
+#This function deals with instances where there are no results, or results not matching the correct school
+def profDNE(first, last, resultCount):
+    if resultCount == 0:
         professor = {
             'First Name' : first,
             'Last Name' : last,
             'Error' : 'No professor by this name found, make sure the name is correct.'
         }
         professorInfo.append(professor)
-    else :
+    else:
         professor = {
         'First Name' : first,
         'Last Name' : last,
@@ -67,8 +80,13 @@ def profDNE(first, last, resultCount) : #This function catches instances where t
         }
         professorInfo.append(professor)
 
-for name in professorNames:
-    lookupProfessor(name[0], name[1]) #name[0] is the first name of a professor, name[1] is the last name of a professor
+def main():
+    requestNames()
+    for name in professorNames:
+        lookupProfessor(name[0], name[1])
+    print(json.dumps(professorInfo, indent=4, sort_keys=False))
+    exit(0)
+    
 
-print(json.dumps(professorInfo, indent=4, sort_keys=False))
-
+if __name__ == '__main__':
+    main()
