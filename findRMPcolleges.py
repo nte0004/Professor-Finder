@@ -1,14 +1,15 @@
 import requests
 import json
 from bs4 import BeautifulSoup
+import csv
 
 collegeList = []
-collegeNum = 1
-def findSchool(number):
-    url = f'https://www.ratemyprofessors.com/school?sid={number}'
+
+def findSchool(collegeNum):
+    url = f'https://www.ratemyprofessors.com/school?sid={collegeNum}'
     r = requests.get(url)
     if r.status_code == 404:
-        errorMSG(r.status_code,number)
+        return
     else:
         soup = BeautifulSoup(r.content, 'html.parser')
         script = soup.find_all('script')[11].text.strip()[25:-1061]
@@ -20,13 +21,36 @@ def findSchool(number):
             'School' : data[id]['name'],
             'Legacy ID' : data[id]['legacyId'],
             'sid' : data[id]['id']
-
         }
         collegeList.append(college)
-def errorMSG(status, num):
-    print(f'HTTPError: {status}, School {num} Does not exist.')
 
-while int(collegeNum) < 6050 :
-    findSchool(collegeNum)
-    collegeNum = int(collegeNum) + 1
-print(json.dumps(collegeList, indent=4, sort_keys=False))
+def toCSV(fileName):
+    fields = ['School','Legacy ID', 'sid']
+    with open(fileName, 'w', newline='') as f:
+        dataWrite = csv.DictWriter(f, fieldnames=fields) 
+        dataWrite.writeheader()
+        dataWrite.writerows(collegeList)
+
+def requestYN(fileName):
+    request = input(f'The data has been found, put data in {fileName}? (yes/no): ')
+    if request.lower() == 'yes':
+        toCSV(fileName)
+    elif request.lower() == 'no':
+        print('Exiting program')
+        return
+    else:
+        print('Type yes or no')
+
+def main():
+    fileName = '' #Name of file to write to
+    collegeNum = 1
+    maxCount = 6050 #6050 is believed to be the true max count. 
+    while int(collegeNum) < maxCount:
+        findSchool(collegeNum)
+        collegeNum = int(collegeNum) + 1
+    requestYN(fileName)
+    exit(0)
+    
+
+if __name__ == '__main__' :
+    main()
