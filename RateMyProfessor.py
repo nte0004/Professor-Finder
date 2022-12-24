@@ -1,9 +1,8 @@
 import requests
 import json
 from bs4 import BeautifulSoup
+import schoolSearch
 
-
-sid = 'U2Nob29sLTYw' #This is Auburn University's school id, to be used in the search.
 professorNames = []
 professorInfo = []
 
@@ -19,20 +18,20 @@ def requestNames():
 #   that name on the rate my professor webiste. The information needed is all in a script from the source code of
 #   the professor page. The JSON aspect of that script is isolated and then the function calls getProfessorInfo to
 #   further isolate the correct information.
-def lookupProfessor(firstName, lastName):
+def lookupProfessor(firstName, lastName, sid):
     pageUrl = f'https://www.ratemyprofessors.com/search/teachers?query={firstName}%20{lastName}&sid={sid}'
     r = requests.get(pageUrl)
     soup = BeautifulSoup(r.content, 'html.parser')
     script = soup.find_all('script')[10].text.strip()[25:-1061]
-    getProfessorInfo(script, firstName, lastName)
+    getProfessorInfo(script, firstName, lastName, sid)
 
 #getProfessorInfo creates and navigates a data dictionary with the script found with lookupProfessor.
 #   The script is converted to a JSON string then navigated in the usual dictionary methods. 
 #   Once all the information needed is found, it creates a Professor object and adds it to the PrefessorInfo list.
-def getProfessorInfo(JSON_String, first, last):
+def getProfessorInfo(JSON_String, first, last, sid):
     data = json.loads(JSON_String)
     bs, open, close = '\"', '{\"', '\"}' # formatting variables to use f string in the refString
-    resultString = f'client:root:newSearch:teachers(after:{bs}{bs},first:8,query:{open}fallback{bs}:true,{bs}schoolID{bs}:{bs}U2Nob29sLTYw{bs},{bs}text{bs}:{bs}{first} {last}{close})'
+    resultString = f'client:root:newSearch:teachers(after:{bs}{bs},first:8,query:{open}fallback{bs}:true,{bs}schoolID{bs}:{bs}{sid}{bs},{bs}text{bs}:{bs}{first} {last}{close})'
     resultCount = int(data[resultString]['resultCount'])
     if resultCount == 0:
         profDNE(first, last, resultCount)
@@ -81,9 +80,10 @@ def profDNE(first, last, resultCount):
         professorInfo.append(professor)
 
 def main():
+    sid = schoolSearch.main()
     requestNames()
     for name in professorNames:
-        lookupProfessor(name[0], name[1])
+        lookupProfessor(name[0], name[1], sid)
     print(json.dumps(professorInfo, indent=4, sort_keys=False))
     exit(0)
     
