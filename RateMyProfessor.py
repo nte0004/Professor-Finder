@@ -9,7 +9,7 @@ professorInfo = []
 #requestNames ask the user for the names of the professors to search.
 #   That input is put in the inputList, then it is further seperated to first and last names in the professorNames list.
 def requestNames():
-    inputPrompt = input('Please input the first and last names of the professor you would like to search, seperate each name with a comma: ')
+    inputPrompt = input('Enter the names of the professors in the following format "John Doe, Bob Ross, First Last": ')
     inputList = inputPrompt.split(', ')
     for name in inputList:
         professorNames.append(name.split(' '))
