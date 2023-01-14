@@ -8,9 +8,8 @@ professorInfo = []
 
 #requestNames ask the user for the names of the professors to search.
 #   That input is put in the inputList, then it is further seperated to first and last names in the professorNames list.
-def requestNames():
-    inputPrompt = input('Enter the names of the professors in the following format "John Doe, Bob Ross, First Last": ')
-    inputList = inputPrompt.split(', ')
+def requestNames(profInput:str):
+    inputList = profInput.split(', ')
     for name in inputList:
         professorNames.append(name.split(' '))
 
@@ -22,8 +21,15 @@ def lookupProfessor(firstName: str, lastName: str, target_SID: str):
     pageUrl = f'https://www.ratemyprofessors.com/search/teachers?query={firstName}%20{lastName}&sid={target_SID}'
     r = requests.get(pageUrl)
     soup = BeautifulSoup(r.content, 'html.parser')
-    script = soup.find_all('script')[10].text.strip()[25:-1061]
-    getProfessorInfo(script, firstName, lastName, target_SID)
+    script = soup.find_all('script')[10].text.strip()
+    contents = script[25:-915]
+    if contents[-3:-1] == 'l}':
+        getProfessorInfo(contents, firstName, lastName, target_SID)
+    else:
+        key = -1061
+        while script[key] != ';':
+            key += 1
+        print('\n****\n', f'New Key for Script: {str(key)}', '\n****\n')
 
 #getProfessorInfo creates and navigates a data dictionary with the script found with lookupProfessor.
 #   The script is converted to a JSON string then navigated in the usual dictionary methods. 
@@ -79,14 +85,10 @@ def badResult(first: str, last: str, resultCount: int):
         }
         professorInfo.append(professor)
 
-def main():
-    target_SchoolID = schoolSearch.main()
-    requestNames()
+def main(professorsString, target_SchoolID):
+    if len(professorsString) == 0:
+        raise ValueError
+    requestNames(professorsString)
     for name in professorNames:
         lookupProfessor(name[0], name[1], target_SchoolID)
-    print(json.dumps(professorInfo, indent=4, sort_keys=False))
-    exit(0)
-    
-
-if __name__ == '__main__':
-    main()
+    return professorInfo
