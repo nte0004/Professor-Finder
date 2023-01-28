@@ -39,15 +39,14 @@ def requestYN(fileName):
         print('Exiting program')
         return
     else:
-        print('Type yes or no')
+        requestYN(fileName)
 
 def main():
     fileName = '' #Name of file to write to
     collegeNum = 1
-    maxCount = 6050 #6050 is believed to be the true max count. 
-    while int(collegeNum) < maxCount:
+    maxCount = 6049 #6049 is believed to be the true max count. 
+    for collegeNum in range(maxCount):
         findSchool(collegeNum)
-        collegeNum = int(collegeNum) + 1
     requestYN(fileName)
     exit(0)
     

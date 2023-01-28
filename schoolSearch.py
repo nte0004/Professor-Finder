@@ -7,7 +7,7 @@ def findMatch(search: str):
     possibleMatch = df['School'].str.fullmatch(search, case=False)
     for index, value in enumerate(possibleMatch):
         if value == True:
-            return str(df.iloc[index]['School']), str(df.iloc[index]['sid'])
+            return str(df.iloc[index]['sid'])
     schoolList = list(df['School'])
     sidList = list(df['sid'])
     return schoolList, sidList

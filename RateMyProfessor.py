@@ -5,6 +5,7 @@ import schoolSearch
 
 professorNames = []
 professorInfo = []
+scriptKey = -945
 
 #requestNames ask the user for the names of the professors to search.
 #   That input is put in the inputList, then it is further seperated to first and last names in the professorNames list.
@@ -22,7 +23,7 @@ def lookupProfessor(firstName: str, lastName: str, target_SID: str):
     r = requests.get(pageUrl)
     soup = BeautifulSoup(r.content, 'html.parser')
     script = soup.find_all('script')[10].text.strip()
-    contents = script[25:-915]
+    contents = script[25:scriptKey]
     if contents[-3:-1] == 'l}':
         getProfessorInfo(contents, firstName, lastName, target_SID)
     else:

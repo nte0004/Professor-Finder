@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import RateMyProfessor
 import schoolSearch
+import time
 class UserInterface:
     def __init__(self, parent):
         self.hasRun = False
@@ -34,27 +35,34 @@ class UserInterface:
         self.results = ttk.Notebook(self.mainframe, padding='3 3 12 12')
         self.results.grid(column=0, row=3)
 
+        self.resultList = []
     def argInput(self):
         self.sButton.config(state=tk.DISABLED)
         if self.hasRun == True:
-            for item in self.results.winfo_children():
-                print(item)
-                item.destroy()
+            for frame in self.resultList:
+                frame:ttk.Frame
+                frame.destroy()
+                self.results.update()
+            self.resultList.clear()
         sid = schoolSearch.findMatch(self.schoolInput.get())
         searchResult = RateMyProfessor.main(self.professorInput.get(), sid)
-
         for professor in searchResult:
             self.resultFrame = ttk.Frame(self.results, padding='3 3 3 3')
             self.resultFrame.grid(column=0, row=0)
-            for key, value in enumerate(professor):
-                #add string info to output! Can't delete previously created output!
+            for index, attribute in enumerate(professor):
+                self.label = ttk.Label(self.resultFrame)
+                self.label.grid(column=0,row=index)
+                self.label.config(text=attribute)
+                self.label2 = ttk.Label(self.resultFrame)
+                self.label2.grid(column=1, row=index)
+                self.label2.config(text=professor[attribute])
             first = professor['First Name']
             last = professor['Last Name']
             self.professorName = first + ' ' + last
             self.results.add(self.resultFrame, text= self.professorName)
+            self.resultList.append(self.resultFrame)
         self.hasRun = True
         self.sButton.config(state=tk.NORMAL)
-        print('penis')
 root = tk.Tk()
 root.title('Rate My Professor Search')
 userinterface = UserInterface(root)
