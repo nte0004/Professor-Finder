@@ -10,9 +10,9 @@ scriptKey = -945
 #requestNames ask the user for the names of the professors to search.
 #   That input is put in the inputList, then it is further seperated to first and last names in the professorNames list.
 def requestNames(profInput:str):
-    inputList = profInput.split(', ')
+    inputList = profInput.strip().split(',')
     for name in inputList:
-        professorNames.append(name.split(' '))
+        professorNames.append(name.strip().split(' ', 1))
 
 #lookupProfessor takes the first and last name of each inputted name from the user and searches for the results of
 #   that name on the rate my professor webiste. The information needed is all in a script from the source code of
@@ -61,8 +61,8 @@ def getProfessorInfo(JSON_String: str, first: str, last: str, target_SID: str):
                 'Last Name' : data[prof_ID]['lastName'],
                 'School' : school_Name,
                 'Department' : data[prof_ID]['department'],
-                'Rating' : data[prof_ID]['avgRating'],
-                'Difficulty' : data[prof_ID]['avgDifficulty'],
+                'Rating' : str(data[prof_ID]['avgRating']) + '/5',
+                'Difficulty' : str(data[prof_ID]['avgDifficulty']) + '/5',
                 'Taken Again %' : str(data[prof_ID]['wouldTakeAgainPercent']).replace('-1', 'NA'),
                 'Reviews' : data[prof_ID]['numRatings'],
                 'Professor Page' : f'https://www.ratemyprofessors.com/professor?tid={legacy_ID}'
@@ -75,14 +75,14 @@ def badResult(first: str, last: str, resultCount: int):
         professor = {
             'First Name' : first,
             'Last Name' : last,
-            'Error' : 'No professor by this name found, make sure the name is correct.'
+            'Error' : 'No professor(s) found with this name.'
         }
         professorInfo.append(professor)
     else:
         professor = {
         'First Name' : first,
         'Last Name' : last,
-        'Error' : f'{resultCount} professor(s) matched the search for this name, but they are not at your school.'
+        'Error' : f'{resultCount} professor(s) found. None at this school.'
         }
         professorInfo.append(professor)
 
