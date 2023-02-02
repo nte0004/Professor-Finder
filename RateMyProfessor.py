@@ -63,7 +63,7 @@ def getProfessorInfo(JSON_String: str, first: str, last: str, target_SID: str):
                 'Department' : data[prof_ID]['department'],
                 'Rating' : str(data[prof_ID]['avgRating']) + '/5',
                 'Difficulty' : str(data[prof_ID]['avgDifficulty']) + '/5',
-                'Taken Again %' : str(data[prof_ID]['wouldTakeAgainPercent']).replace('-1', 'NA'),
+                'Would Take Again' : str(data[prof_ID]['wouldTakeAgainPercent']).replace('-1', 'NA') + '%',
                 'Reviews' : data[prof_ID]['numRatings'],
                 'Professor Page' : f'https://www.ratemyprofessors.com/professor?tid={legacy_ID}'
             }

@@ -27,7 +27,7 @@ class UserInterface(tk.Tk):
         self.pLabel = ttk.Label(self.professors, text='Professors:', padding='3 3 3 3')
         self.pLabel.grid(column=0, row=0, sticky=tk.W)
         self.professorInput = tk.StringVar()
-        self.professorInput.set('John Smith, Jane Doe')
+        self.professorInput.set('James Smith, Maria Garcia')
         self.pEntry = ttk.Entry(self.professors, width=32, textvariable=self.professorInput,)
         self.pEntry.grid(column=1, row=0, sticky=(tk.W, tk.E))
 
@@ -39,21 +39,36 @@ class UserInterface(tk.Tk):
         self.message = tk.StringVar()
         self.helpEntry = ttk.Label(self.results, textvariable=self.message, wraplength=450)
         self.helpEntry.grid(column=0,row=3)
+        self.results.bind('<Return>', self.checkInput)
+        self.pEntry.bind('<Return>', self.checkInput)
+        self.sEntry.bind('<Return>', self.checkInput)
+        self.results.focus_set()
         #self.results = ttk.Frame(self.results, padding='3 3 12 12')
         #self.results.grid(column=0, row=3)
 
         #self.resultList = []
 
-    def checkInput(self):
+    def checkInput(self, *args):
         if self.hasRun == True:
+            self.message.set('')
             RateMyProfessor.professorInfo.clear()
             RateMyProfessor.professorNames.clear()
+        self.cleanInput = self.professorInput.get().split(',')
+        for name in self.cleanInput:
+            if not ' ' in name:
+                self.message.set('A professor name must have a first and last part.\nCheck for extra commas or whitespaces.')
+                return
+            fullname = name.strip().split(' ', 1)
+            if not fullname[0].isalpha() or not fullname[1].isalpha():
+                self.message.set(f'{fullname[0]} {fullname[1]} has invalid characters.')
+                return
         self.schoolFound, self.sid = schoolSearch.findMatch(self.schoolInput.get())
         if len(self.schoolFound) == 0:
             self.message.set('No school(s) found. Try a different search.')
             return
         elif len(self.professorInput.get()) == 0:
             self.message.set('Please add professor(s).\nIf there is more than one, seperate the entire name with a comma.')
+            return
         else:
             self.message.set('')
             if type(self.schoolFound) == list:
@@ -98,19 +113,18 @@ class resultsWindow(tk.Toplevel):
                 self.label = ttk.Label(self.resultFrame)
                 self.label.grid(column=0,row=index, sticky=tk.W)
                 self.label.config(text=attribute)
-                self.text = tk.Text(self.resultFrame, height=1, borderwidth=0)
+                self.text = tk.Text(self.resultFrame, height=1, borderwidth=0, width=55, wrap=tk.WORD)
                 self.text.grid(column=1, row=index)
-                self.text.insert('1.0', professor[attribute])
-                self.text.config(state="disabled")
+                self.text.insert(tk.INSERT, professor[attribute])
+                self.text.config(state=tk.DISABLED)
+                
             first = professor['First Name']
             last = professor['Last Name']
             self.professorName = first + ' ' + last
             self.rNotebook.add(self.resultFrame, text= self.professorName)
         
-        self.button = ttk.Button(self.results, text='Done', command=self.destroy, padding='3 3 12 12')
+        self.button = ttk.Button(self.results, text='Done', command=self.destroy, padding='12 12 12 12')
         self.button.grid(column=0, row=1)
-
-
 
 class selectionWindow(tk.Toplevel):
     def __init__(self, parent):
