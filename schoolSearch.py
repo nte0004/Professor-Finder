@@ -1,42 +1,17 @@
 import pandas as pd
 
 file = 'schoolData.csv'
-
-def searchInput() -> str:
-    school = input('Enter the name of your school: ')
-    return school
-
-def searchFor(file: str, search: str) -> pd.DataFrame:
+def findMatch(search: str):
     df = pd.read_csv(file)
-    df = df[df['School'].str.contains(search, case=False)]
+    df = df[df['School'].str.contains(search, case=False)] #All school names that contain the search string within it
+    possibleMatch = df['School'].str.fullmatch(search, case=False) #Series of bools if search string is complete match it is true.
+    # Return sid of school to be used by RateMyProfessor.py
+    for index, value in enumerate(possibleMatch):
+        if value == True:
+            sid = str(df.iloc[index]['sid'])
+            status = str('Match Found')
+            return status, sid
+    # Return list of sid and list of school names for rmp-gui to get user selection of the correct school
     schoolList = list(df['School'])
-    if len(schoolList) == 0:
-        print('\nNo Results Found. Make sure spelling is correct and try again.\n')
-        main()
-    else:
-        possible_matches = df['School'].str.fullmatch(search, case=False)
-        for index, value in enumerate(possible_matches):
-            if value == True:
-                print(df.iloc[index])
-                return df.iloc[index]['sid']
-        choice = chooseSchool(schoolList)
-        print(df.iloc[int(choice)])
-        return df.iloc[int(choice)]['sid']
-
-def chooseSchool(options: list):
-    print(f'Your search matched {len(options)} school(s):')
-    for number, school in enumerate(options):
-        print(f'{number} -- {school}','\n')
-    choice = input('Enter the number of the school you would like to use (Enter "none" to search again): ')
-    if choice == 'none':
-        main()
-    else:
-        return choice
-
-def main():
-    search = searchInput()
-    return searchFor(file, search)
-
-if __name__ == '__main__':
-    main()
-    exit(0)
+    sidList = list(df['sid'])
+    return schoolList, sidList
