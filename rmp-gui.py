@@ -7,39 +7,48 @@ import commentScrape
 class UserInterface(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title('Rate My Professor Search')
+        self.title('Professor Finder')
         self.hasRun = False
         self.results = ttk.Frame(self, padding= '3 3 12 12')
         self.results.grid(column=0, row=0)
         self.results.columnconfigure(0, weight=1)
         self.results.rowconfigure(0, weight=1)
 
+        self.howtomsg = ttk.Frame(self.results, padding= '3 3 12 12')
+        self.howtomsg.grid(column=0, row=0)
+        message = '''Welcome to Professor Finder, where you can quickly search for multiple professors at once at over 4000 schools!
+                        \n\tHow to use: (1) Enter your school name in the school entry (duh)
+                        \n\t\t      (2) Enter the professor names that you want to search in the professor(s) entry.
+                        \n\tExample Valid Entries: \"John Doe\", \"John Doe, Jane Smith, Jimi H\"'''
+        self.howtomsglbl = ttk.Label(self.howtomsg, text=message, padding='3 3 3 3')
+        self.howtomsglbl.grid(column=0,row=0, sticky= tk.W)
+
         self.school = ttk.Frame(self.results, padding= '3 3 12 12')
-        self.school.grid(column=0, row=0,sticky=tk.W)
+        self.school.grid(column=0, row=1,sticky=tk.W)
         self.sLabel = ttk.Label(self.school, text='School:', padding='3 3 3 3')
-        self.sLabel.grid(column=0,row=0, sticky=tk.W)
+        self.sLabel.grid(column=0,row=0, sticky=tk.W, padx=2)
         self.schoolInput = tk.StringVar()
         self.schoolInput.set('Auburn University')
-        self.sEntry = ttk.Entry(self.school, width=32, textvariable=self.schoolInput)
+        self.sEntry = ttk.Entry(self.school, width=48, textvariable=self.schoolInput)
         self.sEntry.grid(column=1, row=0, sticky=(tk.W, tk.E), padx=23)
 
         self.professors = ttk.Frame(self.results, padding= '3 3 12 12')
-        self.professors.grid(column=0, row=1, sticky=tk.W)
+        self.professors.grid(column=0, row=2, sticky=tk.W)
         self.pLabel = ttk.Label(self.professors, text='Professor(s):', padding='3 3 3 3')
         self.pLabel.grid(column=0, row=0, sticky=tk.W)
         self.professorInput = tk.StringVar()
-        self.professorInput.set('Hugh Kwon')
-        self.pEntry = ttk.Entry(self.professors, width=32, textvariable=self.professorInput,)
+        self.professorInput.set('Hugh Kwon, Drew Springall, Tao Shu')
+        self.pEntry = ttk.Entry(self.professors, width=48, textvariable=self.professorInput,)
         self.pEntry.grid(column=1, row=0, sticky=(tk.W, tk.E))
 
         self.search = ttk.Frame(self.results, padding='3 3 12 12')
-        self.search.grid(column=0, row=2)
+        self.search.grid(column=0, row=3)
         self.sButton = ttk.Button(self.search, text='Submit', command=self.checkInput)
         self.sButton.grid(column=0,row=0)
 
         self.message = tk.StringVar()
         self.helpEntry = ttk.Label(self.results, textvariable=self.message, wraplength=450)
-        self.helpEntry.grid(column=0,row=3)
+        self.helpEntry.grid(column=0,row=4)
         self.results.bind('<Return>', self.checkInput)
         self.pEntry.bind('<Return>', self.checkInput)
         self.sEntry.bind('<Return>', self.checkInput)
@@ -83,6 +92,7 @@ class UserInterface(tk.Tk):
     def schoolWindow(self):
         selectionwindow = selectionWindow(self)
         selectionwindow.grab_set()
+        selectionwindow.protocol("WM_DELETE_WINDOW", self.sButton.config(state=tk.NORMAL))
     
     def resultWindow(self):
         resultswindow = resultsWindow(self)
@@ -96,7 +106,7 @@ class UserInterface(tk.Tk):
 class resultsWindow(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
-        self.title('Rate My Professor Search')
+        self.title('Professor Finder Results')
         self.results = ttk.Frame(self, padding= '3 3 12 12')
         self.results.grid(column=0, row=0)
         self.results.columnconfigure(0, weight=1)
@@ -109,21 +119,24 @@ class resultsWindow(tk.Toplevel):
             self.resultFrame = ttk.Frame(self.results, padding='3 3 3 3')
             self.resultFrame.grid(column=0, row=0)
             self.profStats = ttk.Frame(self.resultFrame, padding='3 3 3 3')
-            self.profStats.grid(column=0,row=0)
+            self.profStats.grid(column=0,row=0, sticky=(tk.N))
+            self.profStatsLabel = ttk.Label(self.profStats)
+            self.profStatsLabel.grid(column=0, row=0, pady=6)
+            self.profStatsLabel.config(text="Professor Information", font='bold')
             for index, attribute in enumerate(professor):
                 self.label = ttk.Label(self.profStats, padding= '3 3 3 3') #use if not error to do better formatting for real results
-                self.label.grid(column=0,row=index, sticky=tk.W)
+                self.label.grid(column=0,row=index+1, sticky=tk.W)
                 self.label.config(text=attribute + ':')
                 self.text = tk.Text(self.profStats, height=1, borderwidth=0, width=55, wrap=tk.WORD)
-                self.text.grid(column=1, row=index)
+                self.text.grid(column=1, row=index+1)
                 self.text.insert(tk.INSERT, professor[attribute])
                 self.text.config(state=tk.DISABLED)
             if not 'Error' in professor:
                 self.profReviews = ttk.Frame(self.resultFrame, padding='3 3 3 3')
                 self.profReviews.grid(column=1, row=0)
                 self.profReviewLabel = ttk.Label(self.profReviews)
-                self.profReviewLabel.grid(column=0, row=0)
-                self.profReviewLabel.config(text='Student Reviews')
+                self.profReviewLabel.grid(column=0, row=0, pady=6, sticky= tk.W)
+                self.profReviewLabel.config(text='Student Reviews', font= 'bold')
                 for idx, review in enumerate(commentScrape.main(professor['Professor Page'])):
                     self.reviewFrame = ttk.Frame(self.profReviews, padding='3 3 3 3')
                     self.reviewFrame.grid(column=0, row= idx+1)
@@ -147,7 +160,7 @@ class resultsWindow(tk.Toplevel):
 class selectionWindow(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
-        self.title('Rate My Professor Search')
+        self.title('Select your school')
         self.results = ttk.Frame(self, padding= '3 3 12 12')
         self.results.grid(column=0, row=0)
         self.results.columnconfigure(0, weight=1)
