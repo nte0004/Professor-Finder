@@ -2,7 +2,6 @@ import requests
 import json
 import re
 from bs4 import BeautifulSoup
-import threading
 
 #lookupProfessor takes the first and last name of each inputted name from the user and searches for the results of
 #   that name on the rate my professor webiste. The information needed is all in a script from the source code of
