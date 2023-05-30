@@ -17,29 +17,29 @@ class UserInterface(tk.Tk):
         self.howtomsg = ttk.Frame(self.results, padding= '3 3 12 12')
         self.howtomsg.grid(column=0, row=0)
         message = '''Welcome to Professor Finder, where you can quickly search for multiple professors at once at over 4000 schools!
-                        \n\tHow to use: (1) Enter your school name in the school entry (duh)
+                        \n\tHow to use: (1) Enter your school name in the school entry
                         \n\t\t      (2) Enter the professor names that you want to search in the professor(s) entry.
                         \n\tExample Valid Entries: \"John Doe\", \"John Doe, Jane Smith, Jimi H\"'''
         self.howtomsglbl = ttk.Label(self.howtomsg, text=message, padding='3 3 3 3')
         self.howtomsglbl.grid(column=0,row=0, sticky= tk.W)
 
         self.school = ttk.Frame(self.results, padding= '3 3 12 12')
-        self.school.grid(column=0, row=1,sticky=tk.W)
+        self.school.grid(column=0, row=1, sticky=tk.W)
         self.sLabel = ttk.Label(self.school, text='School:', padding='3 3 3 3')
-        self.sLabel.grid(column=0,row=0, sticky=tk.W, padx=2)
+        self.sLabel.grid(column=0,row=0)
         self.schoolInput = tk.StringVar()
         self.schoolInput.set('Auburn University')
         self.sEntry = ttk.Entry(self.school, width=48, textvariable=self.schoolInput)
-        self.sEntry.grid(column=1, row=0, sticky=(tk.W, tk.E), padx=23)
+        self.sEntry.grid(column=1, row=0)
 
         self.professors = ttk.Frame(self.results, padding= '3 3 12 12')
         self.professors.grid(column=0, row=2, sticky=tk.W)
         self.pLabel = ttk.Label(self.professors, text='Professor(s):', padding='3 3 3 3')
-        self.pLabel.grid(column=0, row=0, sticky=tk.W)
+        self.pLabel.grid(column=0, row=0)
         self.professorInput = tk.StringVar()
         self.professorInput.set('Hugh Kwon, Drew Springall, Tao Shu')
-        self.pEntry = ttk.Entry(self.professors, width=48, textvariable=self.professorInput,)
-        self.pEntry.grid(column=1, row=0, sticky=(tk.W, tk.E))
+        self.pEntry = ttk.Entry(self.professors, width=72, textvariable=self.professorInput,)
+        self.pEntry.grid(column=1, row=0)
 
         self.search = ttk.Frame(self.results, padding='3 3 12 12')
         self.search.grid(column=0, row=3)
