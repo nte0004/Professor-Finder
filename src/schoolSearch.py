@@ -1,6 +1,6 @@
 import pandas as pd
 
-file = 'src/schoolData.csv'
+file = 'schoolData.csv'
 def findMatch(search: str):
     df = pd.read_csv(file)
     df = df[df['School'].str.contains(search, case=False)] #All school names that contain the search string within it
