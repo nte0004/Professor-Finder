@@ -35,15 +35,16 @@ def getProfessorList(JSON_String: str):
     professorList = data[resultString]['edges']['__refs']
     return professorList, resultCount, data
 
-def getProfessorInfo(professor:str, data:dict, target_SID:str, resultCount:int):
+def getProfessorInfo(professor:str, data:dict, target_SID:str, resultCount:int, targetProf:str):
     prof_ID = data[professor]['node']['__ref']
     legacy_ID = data[prof_ID]['legacyId']
     school_ID = data[prof_ID]['school']['__ref']
     school_Name = data[school_ID]['name']
     first_Name = data[prof_ID]['firstName']
     last_Name = data[prof_ID]['lastName']
-
-    if school_ID != target_SID:
+    firstLast = first_Name + last_Name
+    
+    if (school_ID != target_SID):
         WrongProfessor = badResult(first_Name, last_Name, resultCount)
         return WrongProfessor
 
@@ -91,13 +92,16 @@ def main(professorNames:list, target_SchoolID:str):
     if len(professorNames) == 0:
         raise ValueError
     for name in professorNames:
-        contents = lookupProfessor(name[0], name[1], target_SchoolID)
+        firstName = name[0]
+        lastName = name[1]
+        contents = lookupProfessor(firstName, lastName, target_SchoolID)
         professorList, professorCount, data = getProfessorList(contents)
         if professorCount == 0:
-            NoProfessor = badResult(name[0], [1], professorCount)
+            NoProfessor = badResult(firstName, lastName, professorCount)
             professorInfo.append(NoProfessor)
         else:
+            targetProf = firstName + lastName
             for professorAddr in professorList:
-                professor = getProfessorInfo(str(professorAddr), data, target_SchoolID, professorCount)
+                professor = getProfessorInfo(str(professorAddr), data, target_SchoolID, professorCount, targetProf)
                 professorInfo.append(professor)
     return professorInfo

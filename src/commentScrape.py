@@ -1,17 +1,27 @@
 import requests
 import json
 from bs4 import BeautifulSoup
+ 
 def getScript(link:str):
     r = requests.get(link)
     soup = BeautifulSoup(r.content, 'html.parser') # Pull html content from professor webpage
     #allscript = soup.find_all('script')
     #print(allscript)
-    script = soup.find_all('script')[11].text.strip() #Locate the <script></script> where useful info is
-    key = -863
-    while script[key] != ';':
+
+    for script in soup.find_all('script'):
+        if len(script) == 1:
+            if script.text.strip()[0:8] == 'window._':
+                return cleanScript(script.text.strip())
+
+    # cleanScript finds the beginning and end points of the JSON string so that it can return the valid JSON string that contains
+    # all of the professor information.
+def cleanScript(soupScript):
+    key = -860
+    while soupScript[key] != ';':   #Check each character until it finds the end of the JSON string
         key -= 1
-    content = script[25:key] #This is the JSON string that contains useful info on professor
-    return content
+    JSONstring = str(soupScript[25:key])
+    return JSONstring
+
 
 def getComments(content:str):
     reviewList = [] #List of keys referencing each review in content
