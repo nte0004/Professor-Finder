@@ -1,15 +1,13 @@
-import requests
 import json
-import re
 from bs4 import BeautifulSoup
 
 #lookupProfessor takes the first and last name of each inputted name from the user and searches for the results of
 #   that name on the rate my professor webiste. The information needed is all in a script from the source code of
 #   the professor page. The JSON aspect of that script is isolated and then the function calls cleanScript to
 #   further isolate the correct information.
-def lookupProfessor(firstName: str, lastName: str, target_SID: str):
+def lookupProfessor(firstName: str, lastName: str, target_SID: str, session):
     pageUrl = f'https://www.ratemyprofessors.com/search/professors/{target_SID}?q={firstName}%20{lastName}'
-    r = requests.get(pageUrl)
+    r = session.get(pageUrl)
     soup = BeautifulSoup(r.content, 'html.parser')
     for script in soup.find_all('script'):
         if len(script) == 1:
@@ -43,11 +41,14 @@ def getProfessorInfo(professor:str, data:dict, target_SID:str, resultCount:int, 
     first_Name = data[prof_ID]['firstName']
     last_Name = data[prof_ID]['lastName']
     firstLast = first_Name + last_Name
-    
-    if (school_ID != target_SID):
-        WrongProfessor = badResult(first_Name, last_Name, resultCount)
-        return WrongProfessor
+   
+    profStat = {'isFound': False, 'details': None}
 
+    if (firstLast.lower() == targetProf.lower()):
+        profStat['isFound'] = True    
+
+    if (school_ID != target_SID):
+        profStat['details'] = None
     else:
         professor = {
             'First Name' : first_Name,
@@ -60,7 +61,9 @@ def getProfessorInfo(professor:str, data:dict, target_SID:str, resultCount:int, 
             'Reviews' : data[prof_ID]['numRatings'],
             'Professor Page' : f'https://www.ratemyprofessors.com/professor?tid={legacy_ID}'
         }
-        return professor
+        profStat['details'] = professor
+
+    return profStat
 
 #This function deals with instances where there are no results, or results not matching the correct school
 def badResult(first: str, last: str, resultCount: int):
@@ -87,21 +90,42 @@ def badResult(first: str, last: str, resultCount: int):
 #       which is then stored in professorInfo.
 #   - Finall the list of professor objects is returned to rmp-gui where they will be display in the results window.
 #
-def main(professorNames:list, target_SchoolID:str):
+def main(professorNames:list, target_SchoolID:str, session):
     professorInfo = []
+    
     if len(professorNames) == 0:
         raise ValueError
+    
     for name in professorNames:
         firstName = name[0]
         lastName = name[1]
-        contents = lookupProfessor(firstName, lastName, target_SchoolID)
+    
+        contents = lookupProfessor(firstName, lastName, target_SchoolID, session)
         professorList, professorCount, data = getProfessorList(contents)
+        
         if professorCount == 0:
             NoProfessor = badResult(firstName, lastName, professorCount)
             professorInfo.append(NoProfessor)
         else:
             targetProf = firstName + lastName
+            oneOrMoreMatches = False
+            localResults = []
+
             for professorAddr in professorList:
-                professor = getProfessorInfo(str(professorAddr), data, target_SchoolID, professorCount, targetProf)
-                professorInfo.append(professor)
+                profStat = getProfessorInfo(str(professorAddr), data, target_SchoolID, professorCount, targetProf)
+                profFound = profStat['isFound']
+                professor = profStat['details']
+                
+                if profFound:
+                    oneOrMoreMatches = True
+                    professorInfo.append(professor)
+                elif professor is not None:
+                    localResults.append(professor)
+                
+            if not oneOrMoreMatches:
+                # Return up to first three search results
+                for prof in localResults:
+                    professorInfo.append(prof)
+
     return professorInfo
+
