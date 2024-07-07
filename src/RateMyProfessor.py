@@ -124,7 +124,7 @@ def main(professorNames:list, target_SchoolID:str, session):
                 
             if not oneOrMoreMatches:
                 # Return up to first three search results
-                for prof in localResults:
+                for prof in localResults[:3]:
                     professorInfo.append(prof)
 
     return professorInfo

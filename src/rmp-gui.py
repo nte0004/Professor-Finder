@@ -11,55 +11,56 @@ class UserInterface(tk.Tk):
         super().__init__()
 
         self.title('Professor Finder')
+        #self.geometry('450x200')
         self.hasRun = False
         
-        self.results = ttk.Frame(self, padding= '3 3 12 12')
-        self.results.grid(column=0, row=0)
+        self.results = ttk.Frame(self, padding= '12 3 12 3')
+        self.results.grid(column=0, row=0, sticky=tk.NSEW)
         self.results.columnconfigure(0, weight=1)
         self.results.rowconfigure(0, weight=1)
 
-        self.howtomsg = ttk.Frame(self.results, padding= '3 3 12 12')
-        self.howtomsg.grid(column=0, row=0)
-        message = '''Welcome to Professor Finder, where you can quickly search for multiple professors at once at over 4000 schools!
-                        \n\tHow to use: (1) Enter your school name in the school entry
-                        \n\t\t      (2) Enter the professor names that you want to search in the professor(s) entry.
-                        \n\tExample Valid Entries: \"John Doe\", \"John Doe, Jane Smith, Jimi H\"'''
-        self.howtomsglbl = ttk.Label(self.howtomsg, text=message, padding='3 3 3 3')
-        self.howtomsglbl.grid(column=0,row=0, sticky= tk.W)
-
-        self.school = ttk.Frame(self.results, padding= '3 3 12 12')
-        self.school.grid(column=0, row=1, sticky=tk.W)
+        self.header = ttk.Frame(self.results)
+        self.header.grid(column=0, row=0)
         
-        self.sLabel = ttk.Label(self.school, text='School:', padding='3 3 3 3')
-        self.sLabel.grid(column=0,row=0)
+        self.welcomeMsg = 'Welcome to Professor Finder, where you can quickly search for multiple professors at once at over 4000 schools!'
+        self.exMsg = 'Example Entries: \"John Doe\", \"Thomas Smith, Jimi H\"'
+
+        self.welcomeMsgLabel = ttk.Label(self.header, text=self.welcomeMsg, wraplength=450, justify=tk.CENTER, padding='0 3 0 3')
+        self.welcomeMsgLabel.grid(column=0,row=0, sticky= tk.NSEW)
+
+        self.exMsgLabel = ttk.Label(self.header, text=self.exMsg, padding='0 3 0 3')
+        self.exMsgLabel.grid(column=0,row=4, sticky= tk.W)
+
+        self.input = ttk.Frame(self.results, padding='0 3 0 3')
+        self.input.grid(column=0, row=1, sticky=tk.NSEW)
+        
+        self.sLabel = ttk.Label(self.input, text='School:')
+        self.sLabel.grid(column=0,row=0, sticky=tk.E)
         
         self.schoolInput = tk.StringVar()
         self.schoolInput.set('Auburn University')
         
-        self.sEntry = ttk.Entry(self.school, width=48, textvariable=self.schoolInput)
-        self.sEntry.grid(column=1, row=0)
+        self.sEntry = ttk.Entry(self.input, width=36, textvariable=self.schoolInput)
+        self.sEntry.grid(column=1, row=0, sticky=tk.W)
 
-        self.professors = ttk.Frame(self.results, padding= '3 3 12 12')
-        self.professors.grid(column=0, row=2, sticky=tk.W)
-        
-        self.pLabel = ttk.Label(self.professors, text='Professor(s):', padding='3 3 3 3')
-        self.pLabel.grid(column=0, row=0)
+        self.pLabel = ttk.Label(self.input, text='Professor(s):')
+        self.pLabel.grid(column=0, row=1, sticky=tk.E)
         
         self.professorInput = tk.StringVar()
         self.professorInput.set('Hugh Kwon, Drew Springall, Tao Shu')
         
-        self.pEntry = ttk.Entry(self.professors, width=72, textvariable=self.professorInput,)
-        self.pEntry.grid(column=1, row=0)
+        self.pEntry = ttk.Entry(self.input, width=36, textvariable=self.professorInput,)
+        self.pEntry.grid(column=1, row=1, sticky=tk.W)
 
-        self.search = ttk.Frame(self.results, padding='3 3 12 12')
+        self.search = ttk.Frame(self.results)
         self.search.grid(column=0, row=3)
         
-        self.sButton = ttk.Button(self.search, text='Submit', command=self.checkInput)
+        self.sButton = ttk.Button(self.search, text='Search', command=self.checkInput)
         self.sButton.grid(column=0,row=0)
 
         self.message = tk.StringVar()
         
-        self.helpEntry = ttk.Label(self.results, textvariable=self.message, wraplength=450)
+        self.helpEntry = ttk.Label(self.results, textvariable=self.message, wraplength=450, padding='0 3 0 0')
         self.helpEntry.grid(column=0,row=4)
         
         self.results.bind('<Return>', self.checkInput)
@@ -73,54 +74,56 @@ class UserInterface(tk.Tk):
         self.session.get('https://ratemyprofessors.com/')
 
     def checkInput(self, *args):
-        if self.hasRun == True:
-            self.message.set('')
-        
         self.professorNames = []
         
-        self.cleanInput = self.professorInput.get().split(',')
-        
-        for name in self.cleanInput:
-            if not ' ' in name:
-                self.message.set('A professor name must have a first and last part.\nCheck for extra commas or whitespaces.')
-                return
-        
-            fullname = name.strip().split(' ', 1)
-            
-            if not fullname[0].isalpha() or not fullname[1].isalpha():
-                self.message.set(f'{fullname[0]} {fullname[1]} has invalid characters.')
-                return
-            
-            self.professorNames.append(fullname)
-        
+        if self.schoolInput.get() == '':
+            self.message.set('Invalid Input: Please enter the name of a University.')
+            return
+
+        if not self.schoolInput.get().replace(' ', '').isalpha():
+            self.message.set('Invalid Input: The University name contains invalid characters.')
+            return
+
         self.schoolFound, self.sid = schoolSearch.findMatch(self.schoolInput.get())
-        
+
         if len(self.schoolFound) == 0:
-            self.message.set('No school(s) found. Try a different search.')
-            return
-        elif len(self.professorInput.get()) == 0:
-            self.message.set('Please add professor(s).\nIf there is more than one, seperate the entire name with a comma.')
+            self.message.set('Invalid Input: This University is not recognized.')
             return
         
-            #If all inputs are valid, either get user to specify the exact school, or if that has already been found then
-        #   go ahead and run the professor search in RateMyProfessor.py
-        else:
-            self.message.set('')
+        elif len(self.professorInput.get()) == 0:
+            self.message.set('Invalid Input: There no professors to search for.')
+            return
+        
+        self.profNames = self.professorInput.get().split(',')
+        for name in self.profNames:
+            if not ' ' in name:
+                self.message.set(f'Invalid Input: \"{name}\" does not have a last name.')
+                return
+        
+            firstName, lastName = name.strip().split(' ', 1)
             
-            if type(self.schoolFound) == list:
-                self.sButton.config(state=tk.DISABLED)
-                self.schoolWindow()
-            elif type(self.schoolFound) == str:
-                start_time = time.time()
-                
-                self.searchResult = RateMyProfessor.main(self.professorNames, self.sid, self.session)
-                
-                duration = time.time() - start_time
-                print(f'Search took: {duration} seconds.')
-                
-                self.argInput()    
-            else:
-                raise TypeError('Bad Result from schoolSearch.py, must be a list or string')
+            if not firstName.isalpha() or not lastName.isalpha():
+                self.message.set(f'{name} has invalid characters.')
+                return
+            
+            self.professorNames.append(list((firstName, lastName)))
+        
+        #If all inputs are valid, either get user to specify the exact school, or if that has already been found then
+        #   go ahead and run the professor search in RateMyProfessor.py
+        self.message.set('')
+            
+        if type(self.schoolFound) == list:
+            self.sButton.config(state=tk.DISABLED)
+            self.schoolWindow()
+        elif type(self.schoolFound) == str:
+            start_time = time.time()
+            
+            self.searchResult = RateMyProfessor.main(self.professorNames, str(self.sid), self.session)
+            
+            duration = time.time() - start_time
+            print(f'Search took: {duration} seconds.')
+            
+            self.argInput()    
     
     def schoolWindow(self):
         selectionwindow = selectionWindow(self)
@@ -144,18 +147,21 @@ class resultsWindow(tk.Toplevel):
         super().__init__(parent)
         self.title('Search Results')
         
-        self.results = ttk.Frame(self, padding= '3 3 12 12')
+        self.results = ttk.Frame(self, padding= '3 12 3 12')
         self.results.grid(column=0, row=0)
         self.results.columnconfigure(0, weight=1)
         self.results.rowconfigure(0, weight=1)
 
-        self.rNotebook = ttk.Notebook(self.results, padding='3 3 12 12')
-        self.rNotebook.grid(column=0, row=0, sticky=(tk.W, tk.E))
+        self.rNotebook = ttk.Notebook(self.results)
+        self.rNotebook.grid(column=0, row=0, sticky=(tk.NSEW))
         
         for professor in userinterface.searchResult:
             self.resultFrame = ttk.Frame(self.results, padding='3 3 3 3')
             self.resultFrame.grid(column=0, row=0)
             
+            #self.scroll = ttk.Scrollbar(self.resultFrame, orient=tk.VERTICAL, command=self.rNotebook.yview)
+            #self.scroll.grid(column=1, row=0, sticky=(tk.NS))
+
             self.profStats = ttk.Frame(self.resultFrame, padding='3 3 3 3')
             self.profStats.grid(column=0,row=0, sticky=(tk.N))
             
@@ -164,7 +170,7 @@ class resultsWindow(tk.Toplevel):
             self.profStatsLabel.config(text="Professor Information", font='bold')
             
             for index, attribute in enumerate(professor):
-                self.label = ttk.Label(self.profStats, padding= '3 3 3 3') #use if not error to do better formatting for real results
+                self.label = ttk.Label(self.profStats, padding= '3 3 3 3') 
                 self.label.grid(column=0,row=index+1, sticky=tk.W)
                 self.label.config(text=attribute + ':')
                 
@@ -175,10 +181,10 @@ class resultsWindow(tk.Toplevel):
             
             if not 'Error' in professor:
                 self.profReviews = ttk.Frame(self.resultFrame, padding='3 3 3 3')
-                self.profReviews.grid(column=1, row=0)
+                self.profReviews.grid(column=0, row=1)
                 
                 self.profReviewLabel = ttk.Label(self.profReviews)
-                self.profReviewLabel.grid(column=0, row=0, pady=6, sticky= tk.W)
+                self.profReviewLabel.grid(column=0, row=0, pady=6)
                 self.profReviewLabel.config(text='Student Reviews', font= 'bold')
                 
                 for idx, review in enumerate(commentScrape.main(professor['Professor Page'])):
