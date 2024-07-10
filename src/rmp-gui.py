@@ -3,7 +3,6 @@ from tkinter import ttk
 import RateMyProfessor
 import schoolSearch
 import commentScrape
-import time
 import requests
 
 class UserInterface(tk.Tk):
@@ -116,13 +115,7 @@ class UserInterface(tk.Tk):
             self.sButton.config(state=tk.DISABLED)
             self.schoolWindow()
         elif type(self.schoolFound) == str:
-            start_time = time.time()
-            
             self.searchResult = RateMyProfessor.main(self.professorNames, str(self.sid), self.session)
-            
-            duration = time.time() - start_time
-            print(f'Search took: {duration} seconds.')
-            
             self.argInput()    
     
     def schoolWindow(self):
@@ -135,10 +128,7 @@ class UserInterface(tk.Tk):
         resultswindow.grab_set()
 
     def argInput(self):
-        s1 = time.time()
         self.resultWindow()
-        s2 = time.time() - s1
-        print(f'Displaying Results Took: {s2} seconds.')
         self.hasRun = True
         self.sButton.config(state=tk.NORMAL)
 
@@ -179,15 +169,16 @@ class resultsWindow(tk.Toplevel):
                 self.text.insert(tk.INSERT, professor[attribute])
                 self.text.config(state=tk.DISABLED)
             
-            if not 'Error' in professor:
+            self.reviews = commentScrape.main(professor['Professor Page'], userinterface.session)
+            if self.reviews:
                 self.profReviews = ttk.Frame(self.resultFrame, padding='3 3 3 3')
                 self.profReviews.grid(column=0, row=1)
                 
                 self.profReviewLabel = ttk.Label(self.profReviews)
-                self.profReviewLabel.grid(column=0, row=0, pady=6)
+                self.profReviewLabel.grid(column=0, row=0, pady=6, sticky=tk.W)
                 self.profReviewLabel.config(text='Student Reviews', font= 'bold')
                 
-                for idx, review in enumerate(commentScrape.main(professor['Professor Page'])):
+                for idx, review in enumerate(self.reviews):
                     self.reviewFrame = ttk.Frame(self.profReviews, padding='3 3 3 3')
                     self.reviewFrame.grid(column=0, row= idx+1)
                     
@@ -261,7 +252,7 @@ class selectionWindow(tk.Toplevel):
         
         if len(self.schoolIdx) == 1:
             userinterface.schoolInput.set(str(self.schoolName))
-            userinterface.searchResult = RateMyProfessor.main(userinterface.professorNames, self.sid[1])
+            userinterface.searchResult = RateMyProfessor.main(userinterface.professorNames, self.sid[1], userinterface.session)
         
             self.destroy()
             userinterface.argInput()

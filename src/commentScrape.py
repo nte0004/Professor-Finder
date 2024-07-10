@@ -2,8 +2,8 @@ import requests
 import json
 from bs4 import BeautifulSoup
  
-def getScript(link:str):
-    r = requests.get(link)
+def getScript(link:str, session):
+    r = session.get(link)
     soup = BeautifulSoup(r.content, 'html.parser') # Pull html content from professor webpage
     #allscript = soup.find_all('script')
     #print(allscript)
@@ -40,8 +40,8 @@ def getComments(content:str):
         commentList.append(comment)
     return commentList
 
-def main(link:str):
-    content = getScript(link)
+def main(link:str, session):
+    content = getScript(link, session)
     comments = getComments(content)
     return comments
 
