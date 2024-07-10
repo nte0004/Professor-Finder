@@ -1,5 +1,4 @@
 import json
-import commentScrape
 from bs4 import BeautifulSoup
 
 #lookupProfessor takes the first and last name of each inputted name from the user and searches for the results of
@@ -34,7 +33,7 @@ def getProfessorList(JSON_String: str):
     professorList = data[resultString]['edges']['__refs']
     return professorList, resultCount, data
 
-def getProfessorInfo(professor:str, data:dict, target_SID:str, resultCount:int, targetProf:str, session):
+def getProfessorInfo(professor:str, data:dict, target_SID:str, resultCount:int, targetProf:str):
     prof_ID = data[professor]['node']['__ref']
     legacy_ID = data[prof_ID]['legacyId']
     school_ID = data[prof_ID]['school']['__ref']
@@ -60,12 +59,8 @@ def getProfessorInfo(professor:str, data:dict, target_SID:str, resultCount:int, 
             'Difficulty' : str(data[prof_ID]['avgDifficulty']) + '/5',
             'Would Take Again' : str(data[prof_ID]['wouldTakeAgainPercent']).replace('-1', 'NA') + '%',
             'Reviews' : data[prof_ID]['numRatings'],
-            'Professor Page' : f'https://www.ratemyprofessors.com/professor?tid={legacy_ID}',
-            'Reviews' : None
+            'Professor Page' : f'https://www.ratemyprofessors.com/professor?tid={legacy_ID}'
         }
-        
-        reviews = commentScrape.main(f'https://www.ratemyprofessors.com/professor?tid={legacy_ID}', session)
-        professor['Reviews'] = reviews
         profStat['details'] = professor
 
     return profStat
@@ -117,7 +112,7 @@ def main(professorNames:list, target_SchoolID:str, session):
             localResults = []
 
             for professorAddr in professorList:
-                profStat = getProfessorInfo(str(professorAddr), data, target_SchoolID, professorCount, targetProf, session)
+                profStat = getProfessorInfo(str(professorAddr), data, target_SchoolID, professorCount, targetProf)
                 profFound = profStat['isFound']
                 professor = profStat['details']
                 

@@ -159,47 +159,48 @@ class resultsWindow(tk.Toplevel):
             self.resultFrame = ttk.Frame(self.results, padding='3 3 3 3')
             self.resultFrame.grid(column=0, row=0)
             
+            #self.scroll = ttk.Scrollbar(self.resultFrame, orient=tk.VERTICAL, command=self.rNotebook.yview)
+            #self.scroll.grid(column=1, row=0, sticky=(tk.NS))
+
             self.profStats = ttk.Frame(self.resultFrame, padding='3 3 3 3')
-            self.profStats.grid(column=0,row=0, sticky=(tk.NW))
+            self.profStats.grid(column=0,row=0, sticky=(tk.N))
             
             self.profStatsLabel = ttk.Label(self.profStats)
             self.profStatsLabel.grid(column=0, row=0, pady=6)
             self.profStatsLabel.config(text="Professor Information", font='bold')
-        
+            
             for index, attribute in enumerate(professor):
                 self.label = ttk.Label(self.profStats, padding= '3 3 3 3') 
-                self.label.grid(column=0,row=index+1, sticky=tk.E)
-    
+                self.label.grid(column=0,row=index+1, sticky=tk.W)
                 self.label.config(text=attribute + ':')
-                self.len = len(str(professor[attribute]))
-
-                self.text = tk.Text(self.profStats, height=1, borderwidth=0, width=self.len, wrap=tk.WORD)
-                self.text.grid(column=1, row=index+1, sticky=tk.W)
+                
+                self.text = tk.Text(self.profStats, height=1, borderwidth=0, width=55, wrap=tk.WORD)
+                self.text.grid(column=1, row=index+1)
                 self.text.insert(tk.INSERT, professor[attribute])
                 self.text.config(state=tk.DISABLED)
             
+            if not 'Error' in professor:
                 self.profReviews = ttk.Frame(self.resultFrame, padding='3 3 3 3')
                 self.profReviews.grid(column=0, row=1)
                 
                 self.profReviewLabel = ttk.Label(self.profReviews)
                 self.profReviewLabel.grid(column=0, row=0, pady=6)
+                self.profReviewLabel.config(text='Student Reviews', font= 'bold')
                 
-                if (index == 9 and len(professor[attribute] > 0)):
-                    self.profReviewLabel.config(text='Student Reviews', font= 'bold')
+                for idx, review in enumerate(commentScrape.main(professor['Professor Page'])):
+                    self.reviewFrame = ttk.Frame(self.profReviews, padding='3 3 3 3')
+                    self.reviewFrame.grid(column=0, row= idx+1)
                     
-                    for idx, review in enumerate(professor[attribute]):
-                        self.reviewFrame = ttk.Frame(self.profReviews, padding='3 3 3 3')
-                        self.reviewFrame.grid(column=0, row= idx+1)
-                        
-                        self.rclass = ttk.Label(self.reviewFrame)
-                        self.rclass.grid(column=0, row=0, sticky=tk.W)
-                        self.rclass.config(text=review['Class'])
-                        
-                        self.review = tk.Text(self.reviewFrame, height=5, border=0, width=76, wrap = tk.WORD)
-                        self.review.grid(column=0, row=1)
-                        self.review.insert(tk.INSERT, review['Comment'])
-                        self.review.config(state=tk.DISABLED)
+                    self.rclass = ttk.Label(self.reviewFrame)
+                    self.rclass.grid(column=0, row=0, sticky=tk.W)
+                    self.rclass.config(text=review['Class'])
+                    
+                    self.review = tk.Text(self.reviewFrame, height=5, border=0, width=76, wrap = tk.WORD)
+                    self.review.grid(column=0, row=1)
+                    self.review.insert(tk.INSERT, review['Comment'])
+                    self.review.config(state=tk.DISABLED)
                 
+            
             first = professor['First Name']
             last = professor['Last Name']
             self.professorName = first + ' ' + last
